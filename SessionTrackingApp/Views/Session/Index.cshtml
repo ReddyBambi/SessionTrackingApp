@@ -1,0 +1,26 @@
+﻿@model List<SessionViewModel>
+
+<h2>User Sessions</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Session ID</th>
+            <th>Start Time</th>
+            <th>Last Page</th>
+            <th>Pages Visited</th>
+            <th>Updated At</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var session in Model)
+        {
+            <tr>
+                <td>@session.SessionId</td>
+                <td>@session.StartTime</td>
+                <td>@session.LastPage</td>
+                <td>@session.PagesVisited</td>
+                <td>@session.UpdatedAt</td>
+            </tr>
+        }
+    </tbody>
+</table>
