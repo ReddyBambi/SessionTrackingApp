@@ -3,6 +3,21 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Welcome to Session Tracking App</h1>
+    <p class="lead">This application tracks user sessions and page visits.</p>
+
+    <div class="mt-4">
+        <p>Navigate through the pages to see session tracking in action:</p>
+        <div class="btn-group" role="group">
+            <a class="btn btn-primary" asp-controller="Home" asp-action="Privacy">Visit Privacy Page</a>
+            <a class="btn btn-secondary" asp-controller="Session" asp-action="Index">View All Sessions</a>
+        </div>
+    </div>
+
+    <div class="mt-4 alert alert-info">
+        <strong>Session Information:</strong><br>
+        Session ID: @Context.Session.GetString("SessionId")<br>
+        Start Time: @Context.Session.GetString("StartTime")<br>
+        Pages Visited: @Context.Session.GetString("PagesVisited")
+    </div>
 </div>

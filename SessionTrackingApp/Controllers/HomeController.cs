@@ -15,11 +15,7 @@ namespace SessionTrackingApp.Controllers
 
         public IActionResult Index()
         {
-            HttpContext.Session.SetString("MyKey", "Hello World");
-            var value = HttpContext.Session.GetString("MyKey");
-
-            return Content($"Session value: {value}");
-            //return View();
+            return View();
         }
 
         public IActionResult Privacy()

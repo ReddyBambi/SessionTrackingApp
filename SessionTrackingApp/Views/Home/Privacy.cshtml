@@ -4,3 +4,26 @@
 <h1>@ViewData["Title"]</h1>
 
 <p>Use this page to detail your site's privacy policy.</p>
+
+<div class="mt-4">
+    <h3>Session Tracking Information</h3>
+    <p>This application tracks your session for analytics purposes. We collect:</p>
+    <ul>
+        <li>Session ID</li>
+        <li>Pages visited during your session</li>
+        <li>Session start time</li>
+        <li>Last page visited</li>
+    </ul>
+
+    <div class="mt-4 alert alert-info">
+        <strong>Current Session Information:</strong><br>
+        Session ID: @Context.Session.GetString("SessionId")<br>
+        Start Time: @Context.Session.GetString("StartTime")<br>
+        Pages Visited: @Context.Session.GetString("PagesVisited")
+    </div>
+
+    <div class="mt-3">
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Back to Home</a>
+        <a class="btn btn-secondary" asp-controller="Session" asp-action="Index">View All Sessions</a>
+    </div>
+</div>
