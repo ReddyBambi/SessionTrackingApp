@@ -1,40 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using SessionTrackingApp.Models;
+using SessionTrackingApp.Services;
 
 namespace SessionTrackingApp.Controllers
 {
     public class SessionController : Controller
     {
-        private readonly IConfiguration _config;
+        private readonly ISessionService _sessionService;
 
-        public SessionController(IConfiguration config)
+        public SessionController(ISessionService sessionService)
         {
-            _config = config;
+            _sessionService = sessionService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var sessions = new List<SessionViewModel>();
-
-            using var conn = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
-            await conn.OpenAsync();
-
-            var cmd = new SqlCommand("SELECT * FROM UserSessionTracking ORDER BY UpdatedAt DESC", conn);
-            using var reader = await cmd.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                sessions.Add(new SessionViewModel
-                {
-                    SessionId = reader["SessionId"].ToString(),
-                    StartTime = Convert.ToDateTime(reader["StartTime"]),
-                    LastPage = reader["LastPage"].ToString(),
-                    PagesVisited = reader["PagesVisited"].ToString(),
-                    UpdatedAt = Convert.ToDateTime(reader["UpdatedAt"])
-                });
-            }
-
+            var sessions = await _sessionService.GetAllSessionsAsync();
             return View(sessions);
         }
     }

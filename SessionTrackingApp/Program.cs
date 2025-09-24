@@ -6,7 +6,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services
 builder.Services.AddControllersWithViews();
+
+// Register repositories
+builder.Services.AddScoped<SessionTrackingApp.Repositories.ISessionRepository, SessionTrackingApp.Repositories.SessionRepository>();
+
+// Register services
 builder.Services.AddScoped<SessionTrackerService>();
+builder.Services.AddScoped<SessionTrackingApp.Services.ISessionService, SessionTrackingApp.Services.SessionService>();
 
 // SQL Server-backed distributed cache
 builder.Services.AddDistributedSqlServerCache(options =>
@@ -36,11 +42,11 @@ else
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
-app.UseMiddleware<SessionTrackerMiddleware>();
 app.UseStaticFiles();
 app.UseRouting();
 
 app.UseSession();
+app.UseMiddleware<SessionTrackerMiddleware>();
 app.UseAuthorization();
 
 app.MapDefaultControllerRoute();

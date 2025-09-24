@@ -1,43 +1,49 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using SessionTrackingApp.Repositories;
 
 namespace SessionTrackingApp.Services
 {
     public class SessionTrackerService
     {
-        private readonly string _connectionString;
+        private readonly ISessionRepository _sessionRepository;
 
-        public SessionTrackerService(IConfiguration config)
+        public SessionTrackerService(ISessionRepository sessionRepository)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            _sessionRepository = sessionRepository;
         }
 
         public async Task SaveSessionAsync(ISession session)
         {
             var sessionId = session.GetString("SessionId");
-            var startTime = DateTime.Parse(session.GetString("StartTime") ?? DateTime.UtcNow.ToString());
-            var pagesVisited = session.GetString("PagesVisited");
-            var lastPage = pagesVisited?.Split(";").Reverse().Skip(1).FirstOrDefault();
+            if (string.IsNullOrEmpty(sessionId))
+                return;
 
-            using var conn = new SqlConnection(_connectionString);
-            await conn.OpenAsync();
+            var startTimeString = session.GetString("StartTime");
+            var startTime = DateTime.TryParse(startTimeString, out var parsedStartTime)
+                ? parsedStartTime
+                : DateTime.UtcNow;
 
-            var cmd = new SqlCommand(@"
-            IF EXISTS (SELECT 1 FROM UserSessionTracking WHERE SessionId = @SessionId)
-                UPDATE UserSessionTracking
-                SET LastPage = @LastPage, PagesVisited = @PagesVisited, UpdatedAt = @UpdatedAt
-                WHERE SessionId = @SessionId
-            ELSE
-                INSERT INTO UserSessionTracking (SessionId, StartTime, LastPage, PagesVisited, UpdatedAt)
-                VALUES (@SessionId, @StartTime, @LastPage, @PagesVisited, @UpdatedAt)
-        ", conn);
+            var pagesVisited = session.GetString("PagesVisited") ?? string.Empty;
+            var lastPage = GetLastPageFromVisited(pagesVisited);
 
-            cmd.Parameters.AddWithValue("@SessionId", sessionId);
-            cmd.Parameters.AddWithValue("@StartTime", startTime);
-            cmd.Parameters.AddWithValue("@LastPage", lastPage ?? "/");
-            cmd.Parameters.AddWithValue("@PagesVisited", pagesVisited ?? "");
-            cmd.Parameters.AddWithValue("@UpdatedAt", DateTime.UtcNow);
+            var sessionExists = await _sessionRepository.SessionExistsAsync(sessionId);
 
-            await cmd.ExecuteNonQueryAsync();
+            if (sessionExists)
+            {
+                await _sessionRepository.UpdateSessionAsync(sessionId, lastPage, pagesVisited);
+            }
+            else
+            {
+                await _sessionRepository.SaveSessionAsync(sessionId, startTime, lastPage, pagesVisited);
+            }
+        }
+
+        private static string GetLastPageFromVisited(string pagesVisited)
+        {
+            if (string.IsNullOrEmpty(pagesVisited))
+                return "/";
+
+            var pages = pagesVisited.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            return pages.LastOrDefault() ?? "/";
         }
     }
 
